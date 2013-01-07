@@ -1,5 +1,6 @@
 var Game = function() {
 	this.util = new Util();
+	_.bindAll(this);
 };
 
 Game.prototype = {
@@ -165,7 +166,7 @@ Game.prototype = {
 			if (this.playfield[b - 8][c].path) this.playfield[b][c].allowedDir += 1;
 			if (this.playfield[b + 8][c].path) this.playfield[b][c].allowedDir += 2;
 			if (this.playfield[b][c - 8].path) this.playfield[b][c].allowedDir += 4;
-			if (this.playfield[b][c + 8].path) this.playfield[b][c].allowedDir += 8
+			if (this.playfield[b][c + 8].path) this.playfield[b][c].allowedDir += 8;
 		}
 	},
 	createDotElements: function () {
@@ -175,7 +176,7 @@ Game.prototype = {
 			d.id = this.getDotElementId(b, c);
 			d.style.left = c + -32 + "px";
 			d.style.top = b + 0 + "px";
-			this.playfieldEl.appendChild(d)
+			this.playfieldEl.appendChild(d);
 		}
 	},
 	createEnergizerElements: function () {
@@ -184,7 +185,7 @@ Game.prototype = {
 			d = this.getDotElementId(c.y * 8, c.x * 8);
 			document.getElementById(d).className = "pcm-e";
 			this.prepareElement(document.getElementById(d), 0, 144);
-			this.playfield[c.y * 8][c.x * 8].dot = 2
+			this.playfield[c.y * 8][c.x * 8].dot = 2;
 		}
 	},
 	createFruitElement: function () {
@@ -193,7 +194,7 @@ Game.prototype = {
 		this.fruitEl.style.left = this.getPlayfieldX(v[1]) + "px";
 		this.fruitEl.style.top = this.getPlayfieldY(v[0]) + "px";
 		this.prepareElement(this.fruitEl, -32, -16);
-		this.playfieldEl.appendChild(this.fruitEl)
+		this.playfieldEl.appendChild(this.fruitEl);
 	},
 	createPlayfieldElements: function () {
 		this.doorEl = document.createElement("div");
@@ -202,30 +203,37 @@ Game.prototype = {
 		this.playfieldEl.appendChild(this.doorEl);
 		this.createDotElements();
 		this.createEnergizerElements();
-		this.createFruitElement()
+		this.createFruitElement();
 	},
 	createActors: function () {
 		this.actors = [];
+
 		for (var b = 0; b < this.playerCount + 4; b++) {
-			this.actors[b] = new E(b);
+			this.actors[b] = new Actor(b);
 			if (b < this.playerCount) {
 				this.actors[b].ghost = e;
-				this.actors[b].mode = 1
-			} else this.actors[b].ghost = a
+				this.actors[b].mode = 1;
+			} else this.actors[b].ghost = a;
 		}
 	},
 	restartActors: function () {
-		for (var b in this.actors) this.actors[b].A()
+		for (var b in this.actors) {
+			this.actors[b].A();
+		}
 	},
 	createActorElements: function () {
-		for (var b in this.actors) this.actors[b].createElement()
+		for (var b in this.actors) {
+			this.actors[b].createElement();
+		}
 	},
 	createPlayfield: function () {
 		this.playfieldEl = document.createElement("div");
 		this.playfieldEl.id = "pcm-p";
-		this.canvasEl.appendChild(this.playfieldEl)
+		this.canvasEl.appendChild(this.playfieldEl);
 	},
 	resetPlayfield: function () {
+		console.log("Game.resetPlayfield()");
+
 		this.dotsRemaining = 0;
 		this.dotsEaten = 0;
 		this.playfieldEl.innerHTML = "";
@@ -235,7 +243,7 @@ Game.prototype = {
 		this.preparePaths();
 		this.prepareAllowedDirections();
 		this.createPlayfieldElements();
-		this.createActorElements()
+		this.createActorElements();
 	},
 	keyPressed: function (b) {
 		var c = e;
@@ -258,56 +266,62 @@ Game.prototype = {
 			break;
 			case 65:
 				if (this.playerCount == 2) {
-				this.actors[1].requestedDir = 4;
-				c = a
-			}
-			break;
+					this.actors[1].requestedDir = 4;
+					c = a;
+				}
+				break;
 			case 83:
 				if (this.playerCount == 2) {
-				this.actors[1].requestedDir = 2;
-				c = a
-			}
-			break;
+					this.actors[1].requestedDir = 2;
+					c = a;
+				}
+				break;
 			case 68:
 				if (this.playerCount == 2) {
-				this.actors[1].requestedDir = 8;
-				c = a
-			}
-			break;
+					this.actors[1].requestedDir = 8;
+					c = a;
+				}
+				break;
 			case 87:
 				if (this.playerCount == 2) {
-				this.actors[1].requestedDir = 1;
-				c = a
-			}
-			break
+					this.actors[1].requestedDir = 1;
+					c = a;
+				}
+				break;
 		}
-		return c
+		return c;
 	},
 	handleKeyDown: function (b) {
 		if (!b) b = window.event;
 		if (this.keyPressed(b.keyCode)) if (b.preventDefault) b.preventDefault();
-		else b.returnValue = e
+		else b.returnValue = e;
 	},
 	canvasClicked: function (b, c) {
 		var d = this.getAbsoluteElPos(this.canvasEl);
-		b -= d[1] - -32;
+		b -= (d[1] + 32);
 		c -= d[0] - 0;
 		d = this.actors[0];
-		var f = this.getPlayfieldX(d.pos[1] + d.posDelta[1]) + 16,
-		h = this.getPlayfieldY(d.pos[0] + d.posDelta[0]) + 32,
-		j = Math.abs(b - f),
-		k = Math.abs(c - h);
-		if (j > 8 && k < j) d.requestedDir = b > f ? 8 : 4;
-		else if (k > 8 && j < k) d.requestedDir = c > h ? 2 : 1
+		var f = this.getPlayfieldX(d.pos[1] + d.posDelta[1]) + 16;
+		var h = this.getPlayfieldY(d.pos[0] + d.posDelta[0]) + 32;
+		var j = Math.abs(b - f);
+		var k = Math.abs(c - h);
+		if (j > 8 && k < j) {
+			d.requestedDir = b > f ? 8 : 4;
+		}
+		else if (k > 8 && j < k) {
+			d.requestedDir = c > h ? 2 : 1;
+		}
 	},
 	handleClick: function (b) {
 		if (!b) b = window.event;
-		this.canvasClicked(b.clientX, b.clientY)
+		this.canvasClicked(b.clientX, b.clientY);
 	},
 	registerTouch: function () {
 		document.body.addEventListener("touchstart", this.handleTouchStart, a);
 		this.canvasEl.addEventListener("touchstart", this.handleTouchStart, a);
-		document.f && document.f.q && document.f.q.addEventListener("touchstart", this.handleTouchStart, a)
+		if(document.f && document.f.q) {
+			document.f.q.addEventListener("touchstart", this.handleTouchStart, a);
+		}
 	},
 	handleTouchStart: function (b) {
 		this.touchDX = 0;
@@ -316,57 +330,59 @@ Game.prototype = {
 			this.touchStartX = b.touches[0].pageX;
 			this.touchStartY = b.touches[0].pageY;
 			document.body.addEventListener("touchmove", this.handleTouchMove, a);
-			document.body.addEventListener("touchend", this.handleTouchEnd, a)
+			document.body.addEventListener("touchend", this.handleTouchEnd, a);
 		}
 		b.preventDefault();
-		b.stopPropagation()
+		b.stopPropagation();
 	},
 	handleTouchMove: function (b) {
 		if (b.touches.length > 1) this.cancelTouch();
 		else {
 			this.touchDX = b.touches[0].pageX - this.touchStartX;
-			this.touchDY = b.touches[0].pageY - this.touchStartY
+			this.touchDY = b.touches[0].pageY - this.touchStartY;
 		}
 		b.preventDefault();
-		b.stopPropagation()
+		b.stopPropagation();
 	},
 	handleTouchEnd: function (b) {
-		if (this.touchDX == 0 && this.touchDY == 0) this.canvasClicked(this.touchStartX, this.touchStartY);
+		if (this.touchDX === 0 && this.touchDY === 0) this.canvasClicked(this.touchStartX, this.touchStartY);
 		else {
 			var c = Math.abs(this.touchDX),
 			d = Math.abs(this.touchDY);
 			if (c < 8 && d < 8) this.canvasClicked(this.touchStartX, this.touchStartY);
 			else if (c > 15 && d < c * 2 / 3) this.actors[0].requestedDir = this.touchDX > 0 ? 8 : 4;
-			else if (d > 15 && c < d * 2 / 3) this.actors[0].requestedDir = this.touchDY > 0 ? 2 : 1
+			else if (d > 15 && c < d * 2 / 3) this.actors[0].requestedDir = this.touchDY > 0 ? 2 : 1;
 		}
-	b.preventDefault();
-	b.stopPropagation();
-	this.cancelTouch()
+		b.preventDefault();
+		b.stopPropagation();
+		this.cancelTouch();
 	},
 	cancelTouch: function () {
 		document.body.removeEventListener("touchmove", this.handleTouchMove, a);
 		document.body.removeEventListener("touchend", this.handleTouchEnd, a);
 		this.touchStartX = null;
-		this.touchStartY = null
+		this.touchStartY = null;
 	},
 	addEventListeners: function () {
 		if (window.addEventListener) {
 			window.addEventListener("keydown", this.handleKeyDown, e);
 			this.canvasEl.addEventListener("click", this.handleClick, e);
-			this.registerTouch()
+			this.registerTouch();
 		} else {
 			document.body.attachEvent("onkeydown", this.handleKeyDown);
-			this.canvasEl.attachEvent("onclick", this.handleClick)
+			this.canvasEl.attachEvent("onclick", this.handleClick);
 		}
 	},
 	startGameplay: function () {
+		console.log("Game.startGameplay()");
+
 		this.score = [0, 0];
 		this.extraLifeAwarded = [e, e];
 		this.lives = 3;
 		this.level = 0;
 		this.paused = e;
 		this.globalTime = 0;
-		this.newLevel(a)
+		this.newLevel(a);
 	},
 
 	restartGameplay: function (b) {
@@ -391,30 +407,41 @@ Game.prototype = {
 		this.dotEatingChannel = [0, 0];
 		this.dotEatingSoundPart = [1, 1];
 		this.clearDotEatingNow();
-		b ? this.changeGameplayMode(4) : this.changeGameplayMode(6)
+		if(b) {
+			this.changeGameplayMode(4);
+		}
+		else {
+			this.changeGameplayMode(6);
+		}
 	},
 	initiateDoubleMode: function () {
 		if (this.playerCount != 2) {
 			this.stopAllAudio();
-			this.changeGameplayMode(12)
+			this.changeGameplayMode(12);
 		}
 	},
 	newGame: function () {
+		console.log("Game.newGame()");
 		this.playerCount = 1;
 		this.createChrome();
 		this.createPlayfield();
 		this.createActors();
-		this.startGameplay()
+		this.startGameplay();
 	},
 	switchToDoubleMode: function () {
 		this.playerCount = 2;
 		this.createChrome();
 		this.createPlayfield();
 		this.createActors();
-		this.startGameplay()
+		this.startGameplay();
 	},
 	insertCoin: function () {
-		this.gameplayMode == 8 || this.gameplayMode == 14 ? this.newGame() : this.initiateDoubleMode()
+		if(this.gameplayMode == 8 || this.gameplayMode == 14) {
+			this.newGame();
+		}
+		else {
+			this.initiateDoubleMode();
+		}
 	},
 	createKillScreenElement: function (b, c, d, f, h) {
 		var j = document.createElement("div");
@@ -425,9 +452,9 @@ Game.prototype = {
 		j.style.zIndex = 119;
 		if (h) {
 			j.style.background = "url(src/pacman10-hp-sprite-2.png) -" + this.killScreenTileX + "px -" + this.killScreenTileY + "px no-repeat";
-			this.killScreenTileY += 8
+			this.killScreenTileY += 8;
 		} else j.style.background = "black";
-		this.playfieldEl.appendChild(j)
+		this.playfieldEl.appendChild(j);
 	},
 	killScreen: function () {
 		this.seed(0);
@@ -439,27 +466,37 @@ Game.prototype = {
 		for (var b = 280; b <= 472; b += 8) for (var c = 0; c <= 136; c += 8) {
 			if (this.rand() < 0.03) {
 				this.killScreenTileX = Math.floor(this.rand() * 25) * 10;
-				this.killScreenTileY = Math.floor(this.rand() * 2) * 10
+				this.killScreenTileY = Math.floor(this.rand() * 2) * 10;
 			}
-			this.createKillScreenElement(b, c, 8, 8, a)
+			this.createKillScreenElement(b, c, 8, 8, a);
 		}
-		this.changeGameplayMode(14)
+		this.changeGameplayMode(14);
 	},
 	newLevel: function (b) {
+		console.log("Game.newLevel(" + b + ")");
+
 		this.level++;
-		this.levels = this.level >= z.length ? z[z.length - 1] : z[this.level];
+		this.levels = (this.level >= z.length) ? z[z.length - 1] : z[this.level];
+
 		// start issue 14: Ghosts stay blue permanently on restart
-		if ((this.levels.frightTime > 0) && (this.levels.frightTime <= 6))
+		if ((this.levels.frightTime > 0) && (this.levels.frightTime <= 6)) {
 			this.levels.frightTime = Math.round(this.levels.frightTime * D);
 		// end issue 14
+		}
+
 		this.levels.frightTotalTime = this.levels.frightTime + this.timing[1] * (this.levels.frightBlinkCount * 2 - 1);
-		for (var c in this.actors) this.actors[c].dotCount = 0;
+		for (var c in this.actors) {
+			this.actors[c].dotCount = 0;
+		}
+
 		this.alternatePenLeavingScheme = e;
 		this.lostLifeOnThisLevel = e;
 		this.updateChrome();
 		this.resetPlayfield();
 		this.restartGameplay(b);
-		this.level == 256 && this.killScreen()
+		if(this.level == 256) {
+			this.killScreen();
+		}
 	},
 	newLife: function () {
 		this.lostLifeOnThisLevel = a;
@@ -467,13 +504,24 @@ Game.prototype = {
 		this.alternateDotCount = 0;
 		this.lives--;
 		this.updateChromeLives();
-		this.lives == -1 ? this.changeGameplayMode(8) : this.restartGameplay(e)
+		if(this.lives == -1) {
+			this.changeGameplayMode(8);
+		}
+		else {
+			this.restartGameplay(e);
+		}
 	},
 	switchMainGhostMode: function (b, c) {
-		if (b == 4 && this.levels.frightTime == 0) for (var d in this.actors) {
-			var f = this.actors[d];
-			if (f.ghost) f.reverseDirectionsNext = a
-		} else {
+		var f;
+		var d;
+
+		if (b === 4 && this.levels.frightTime === 0) {
+			for (d in this.actors) {
+				f = this.actors[d];
+				if (f.ghost) f.reverseDirectionsNext = a;
+			}
+		}
+		else {
 			f = this.mainGhostMode;
 			if (b == 4 && this.mainGhostMode != 4) this.lastMainGhostMode = this.mainGhostMode;
 			this.mainGhostMode = b;
@@ -482,15 +530,16 @@ Game.prototype = {
 				case 1:
 					case 2:
 					this.currentPlayerSpeed = this.levels.playerSpeed * 0.8;
-				this.currentDotEatingSpeed = this.levels.dotEatingSpeed * 0.8;
-				break;
+					this.currentDotEatingSpeed = this.levels.dotEatingSpeed * 0.8;
+					break;
 				case 4:
 					this.currentPlayerSpeed = this.levels.playerFrightSpeed * 0.8;
-				this.currentDotEatingSpeed = this.levels.dotEatingFrightSpeed * 0.8;
-				this.frightModeTime = this.levels.frightTotalTime;
-				this.modeScoreMultiplier = 1;
-				break
+					this.currentDotEatingSpeed = this.levels.dotEatingFrightSpeed * 0.8;
+					this.frightModeTime = this.levels.frightTotalTime;
+					this.modeScoreMultiplier = 1;
+					break;
 			}
+
 			for (d in this.actors) {
 				f = this.actors[d];
 				if (f.ghost) {
@@ -498,13 +547,13 @@ Game.prototype = {
 					if (b == 4) f.eatenInThisFrightMode = e;
 					if (f.mode != 8 && f.mode != 16 && f.mode != 32 && f.mode != 128 && f.mode != 64 || c) {
 						if (!c && f.mode != 4 && f.mode != b) f.reverseDirectionsNext = a;
-						f.a(b)
+						f.a(b);
 					}
 				} else {
 					f.fullSpeed = this.currentPlayerSpeed;
 					f.dotEatingSpeed = this.currentDotEatingSpeed;
 					f.tunnelSpeed = this.currentPlayerSpeed;
-					f.d()
+					f.d();
 				}
 			}
 		}
@@ -515,27 +564,33 @@ Game.prototype = {
 			switch (this.alternateDotCount) {
 				case m[1]:
 					this.actors[this.playerCount + 1].freeToLeavePen = a;
-				break;
+					break;
 				case m[2]:
 					this.actors[this.playerCount + 2].freeToLeavePen = a;
-				break;
+					break;
 				case m[3]:
 					if (this.actors[this.playerCount + 3].mode == 16) this.alternatePenLeavingScheme = e;
-				break
+					break;
 			}
 		} else if (this.actors[this.playerCount + 1].mode == 16 || this.actors[this.playerCount + 1].mode == 8) {
 			this.actors[this.playerCount + 1].dotCount++;
-			if (this.actors[this.playerCount + 1].dotCount >= this.levels.penLeavingLimits[1]) this.actors[this.playerCount + 1].freeToLeavePen = a
+			if (this.actors[this.playerCount + 1].dotCount >= this.levels.penLeavingLimits[1]) {
+				this.actors[this.playerCount + 1].freeToLeavePen = a;
+			}
 		} else if (this.actors[this.playerCount + 2].mode == 16 || this.actors[this.playerCount + 2].mode == 8) {
 			this.actors[this.playerCount + 2].dotCount++;
-			if (this.actors[this.playerCount + 2].dotCount >= this.levels.penLeavingLimits[2]) this.actors[this.playerCount + 2].freeToLeavePen = a
+			if (this.actors[this.playerCount + 2].dotCount >= this.levels.penLeavingLimits[2]) {
+				this.actors[this.playerCount + 2].freeToLeavePen = a;
+			}
 		} else if (this.actors[this.playerCount + 3].mode == 16 || this.actors[this.playerCount + 3].mode == 8) {
 			this.actors[this.playerCount + 3].dotCount++;
-			if (this.actors[this.playerCount + 3].dotCount >= this.levels.penLeavingLimits[3]) this.actors[this.playerCount + 3].freeToLeavePen = a
+			if (this.actors[this.playerCount + 3].dotCount >= this.levels.penLeavingLimits[3]) {
+				this.actors[this.playerCount + 3].freeToLeavePen = a;
+			}
 		}
 	},
 	resetForcePenLeaveTime: function () {
-		this.forcePenLeaveTime = this.levels.penForceTime * D
+		this.forcePenLeaveTime = this.levels.penForceTime * D;
 	},
 	dotEaten: function (b, c) {
 		this.dotsRemaining--;
@@ -544,7 +599,7 @@ Game.prototype = {
 		this.playDotEatingSound(b);
 		if (this.playfield[c[0]][c[1]].dot == 2) {
 			this.switchMainGhostMode(4, e);
-			this.addToScore(50, b)
+			this.addToScore(50, b);
 		} else this.addToScore(10, b);
 		var d = document.getElementById(this.getDotElementId(c[0], c[1]));
 		d.style.display = "none";
@@ -553,28 +608,30 @@ Game.prototype = {
 		this.resetForcePenLeaveTime();
 		this.figureOutPenLeaving();
 		if (this.dotsEaten == 70 || this.dotsEaten == 170) this.showFruit();
-		this.dotsRemaining == 0 && this.finishLevel();
-		this.playAmbientSound()
+		if(this.dotsRemaining === 0) {
+			this.finishLevel();
+		}
+		this.playAmbientSound();
 	},
 	getFruitSprite: function (b) {
 		var c = b <= 4 ? 128 : 160;
 		b = 128 + 16 * ((b - 1) % 4);
-		return [c, b]
+		return [c, b];
 	},
 	getFruitScoreSprite: function (b) {
 		var c = 128;
 		b = 16 * (b - 1);
-		return [c, b]
+		return [c, b];
 	},
 	hideFruit: function () {
 		this.fruitShown = e;
-		this.changeElementBkPos(this.fruitEl, 32, 16, a)
+		this.changeElementBkPos(this.fruitEl, 32, 16, a);
 	},
 	showFruit: function () {
 		this.fruitShown = a;
 		var b = this.getFruitSprite(this.levels.fruit);
 		this.changeElementBkPos(this.fruitEl, b[0], b[1], a);
-		this.fruitTime = this.timing[15] + (this.timing[16] - this.timing[15]) * this.rand()
+		this.fruitTime = this.timing[15] + (this.timing[16] - this.timing[15]) * this.rand();
 	},
 	eatFruit: function (b) {
 		if (this.fruitShown) {
@@ -583,14 +640,14 @@ Game.prototype = {
 			var c = this.getFruitScoreSprite(this.levels.fruit);
 			this.changeElementBkPos(this.fruitEl, c[0], c[1], a);
 			this.fruitTime = this.timing[14];
-			this.addToScore(this.levels.fruitScore, b)
+			this.addToScore(this.levels.fruitScore, b);
 		}
 	},
 	updateActorTargetPositions: function () {
-		for (var b = this.playerCount; b < this.playerCount + 4; b++) this.actors[b].B()
+		for (var b = this.playerCount; b < this.playerCount + 4; b++) this.actors[b].B();
 	},
 	moveActors: function () {
-		for (var b in this.actors) this.actors[b].move()
+		for (var b in this.actors) this.actors[b].move();
 	},
 	ghostDies: function (b, c) {
 		this.playSound("eating-ghost", 0);
@@ -598,17 +655,17 @@ Game.prototype = {
 		this.modeScoreMultiplier *= 2;
 		this.ghostBeingEatenId = b;
 		this.playerEatingGhostId = c;
-		this.changeGameplayMode(1)
+		this.changeGameplayMode(1);
 	},
 	playerDies: function (b) {
 		this.playerDyingId = b;
-		this.changeGameplayMode(2)
+		this.changeGameplayMode(2);
 	},
 	detectCollisions: function () {
 		this.tilesChanged = e;
 		for (var b = this.playerCount; b < this.playerCount + 4; b++) for (var c = 0; c < this.playerCount; c++) if (this.actors[b].tilePos[0] == this.actors[c].tilePos[0] && this.actors[b].tilePos[1] == this.actors[c].tilePos[1]) if (this.actors[b].mode == 4) {
 			this.ghostDies(b, c);
-			return
+			return;
 		} else this.actors[b].mode != 8 && this.actors[b].mode != 16 && this.actors[b].mode != 32 && this.actors[b].mode != 128 && this.actors[b].mode != 64 && this.playerDies(c)
 	},
 	updateCruiseElroySpeed: function () {
@@ -764,7 +821,8 @@ Game.prototype = {
 			d.className = "pcm-ac";
 			d.id = "actor" + c;
 			this.prepareElement(d, 0, 0);
-			c = new E(c);
+
+			c = new Actor(c);
 			c.el = d;
 			c.elBackgroundPos = [0, 0];
 			c.elPos = [0, 0];
